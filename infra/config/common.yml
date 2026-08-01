@@ -1,0 +1,62 @@
+# --- Basic Settings ---
+id: 9000
+hostname: "packer-base"
+on_boot: false
+template_name: "packer-template"
+template_description: "Base template built by Packer"
+
+# --- OS & Boot Settings ---
+iso_storage_pool: "local"
+iso_file: "default"
+unmount_iso: true
+cd_label: "cidata"
+boot_wait: "10s"
+boot: "order=scsi0;ide2"
+bios: "ovmf"
+efi_type: "4m"
+operating_system: "l26"
+
+# --- Hardware Resources ---
+cpu_type: "host"
+sockets: 1
+cores: 2
+ram_memory: 2048
+ballooning_minimum: 0
+machine: "q35"
+tpm_version: "v2.0"
+
+# --- Storage Settings ---
+disk_size: "10G"
+disk_format: "raw"
+disk_storage_pool: "local-zfs"
+disk_model: "virtio"
+disk_cache_mode: "writeback"
+disk_discard: true
+disk_type: "scsi"
+scsi_controller: "virtio-scsi-pci"
+efi_disk_type: "4m"
+efi_disk_pre_enrolled_key: true
+
+# --- Network Settings ---
+network_bridge: "vmbr1"
+network_model: "virtio"
+network_firewall: false
+
+# --- Provisioning ---
+qemu_agent: true
+cloud_init: true
+
+# --- SSH ---
+ssh_timeout: "30m"
+ssh_handshake_attempts: 30
+ssh_username: "svc-infra"
+ssh_private_file_path: "~/.ssh/id_ed25519"
+python_interpreter_path: "/usr/bin/python3"
+
+# --- Network ---
+cidr: "24"
+gateway: "10.0.0.1"
+dns_servers:
+  - "1.1.1.1"
+  - "8.8.8.8"
+dns_domain: "local"

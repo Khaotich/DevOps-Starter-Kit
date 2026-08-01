@@ -1,0 +1,11 @@
+hostname: "forgejo"
+description: "forgejo"
+id: 1002
+qcow2_file: "rocky-10.1-base-stable"
+
+cores: 2
+ram_memory: 2048
+disk_size_gb: 20
+
+ip: "10.0.0.6"
+user: "khaotic"

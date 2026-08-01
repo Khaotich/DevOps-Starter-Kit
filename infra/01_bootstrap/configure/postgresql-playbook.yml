@@ -1,0 +1,18 @@
+---
+- name: Ansible Hello World - Tworzenie katalogu
+  hosts: host
+  gather_facts: false
+  vars_files:
+    - ../../config/common.yml
+    - ../../config/services/postgresql.yml
+
+  tasks:
+    - name: Wyswietl wiadomosc powitalna (Hello World)
+      ansible.builtin.debug:
+        msg: "Uruchamiam Ansible Hello World! Tworzę katalog..."
+
+    - name: Stworz katalog testowy
+      ansible.builtin.file:
+        path: /tmp/ansible_hello_world
+        state: directory
+        mode: '0755'

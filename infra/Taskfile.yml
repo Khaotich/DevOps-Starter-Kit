@@ -1,0 +1,75 @@
+version: '3'
+
+vars:
+  PACKER_DIR: '00_base_images'
+  BOOTSTRAP_DIR: '01_bootstrap'
+
+tasks:
+  default:
+    silent: true
+    cmds:
+      - task --list
+
+  packer-init:
+    desc: "Packer init"
+    dir: '{{.PACKER_DIR}}'
+    cmds:
+      - packer init .
+
+  packer-validate:
+    desc: "Validate Packer configuration"
+    dir: '{{.PACKER_DIR}}'
+    cmds:
+      - packer validate .
+
+  packer-build:
+    desc: "Build Packer images"
+    dir: '{{.PACKER_DIR}}'
+    cmds:
+      - packer build -var "distro=rocky" .
+
+  packer-all:
+    desc: "Run format, validation, and build sequentially"
+    cmds:
+      - task: packer-init
+      - task: packer-validate
+      - task: packer-build
+
+  bootstrap-init:
+    desc: "Bootstrap init"
+    dir: '{{.BOOTSTRAP_DIR}}/provision/vms'
+    cmds:
+      - terragrunt run --all --non-interactive -- init
+
+  bootstrap-validate:
+    desc: "Validate Bootstrap configuration"
+    dir: '{{.BOOTSTRAP_DIR}}/provision/vms'
+    cmds:
+      - terragrunt run --all --non-interactive -- validate
+
+  bootstrap-apply:
+    desc: "Bootstrap Apply"
+    dir: '{{.BOOTSTRAP_DIR}}/provision/vms'
+    cmds:
+      - terragrunt run --all --non-interactive -- apply
+
+  bootstrap-configure:
+    desc: "Bootstrap Configure"
+    dir: '{{.BOOTSTRAP_DIR}}/configure'
+    cmds:
+      - ansible-playbook -i inventory.yml postgresql-playbook.yml
+      - ansible-playbook -i inventory.yml forgejo-playbook.yml
+
+  bootstrap-destroy:
+    desc: "Bootstrap Destroy"
+    dir: '{{.BOOTSTRAP_DIR}}/provision'
+    cmds:
+      - terragrunt run --all --non-interactive -- destroy
+
+  bootstrap-all:
+    desc: "Run format, validation, apply and configure sequentially"
+    cmds:
+      - task: bootstrap-init
+      - task: bootstrap-validate
+      - task: bootstrap-apply
+      - task: bootstrap-configure

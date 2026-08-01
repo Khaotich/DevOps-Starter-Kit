@@ -1,0 +1,40 @@
+name: Build Base Images
+on: push
+env:
+  SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+  PKR_VAR_proxmox_ip: ${{ secrets.PROXMOX_IP }}
+  PKR_VAR_proxmox_token_secret: ${{ secrets.PROXMOX_TOKEN_SECRET }}
+  PKR_VAR_vm_ssh_password: ${{ secrets.VM_SSH_PASSWORD }}
+  PKR_VAR_vm_ssh_password_hash: ${{ secrets.VM_SSH_PASSWORD_HASH }}
+  PKR_VAR_vm_ssh_public_key: ${{ secrets.VM_SSH_PUBLIC_KEY }}
+
+jobs:
+  Build Base Images:
+    runs-on: rocky
+    steps:
+      - name: Install Tools
+        run: | 
+          yum install -y yum-utils nodejs openssh-clients xorriso 
+          yum-config-manager --add-repo https://rpm.releases.hashicorp.com/RHEL/hashicorp.repo
+          yum install -y packer
+
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure Ssh
+        run: |
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -t ed25519 "$PKR_VAR_proxmox_ip" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Packer Init
+        working-directory: 00_base_images
+        run: packer init .
+
+      - name: Packer Build Rocky Base Iamge
+        working-directory: 00_base_images
+        run: packer build -var "distro=rocky" .
+        
