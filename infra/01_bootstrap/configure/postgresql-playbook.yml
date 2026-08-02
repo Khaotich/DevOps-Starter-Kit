@@ -3,8 +3,8 @@
   hosts: host
   gather_facts: false
   vars_files:
-    - ../../config/common.yml
-    - ../../config/services/postgresql.yml
+    - ../../../config/common.yml
+    - ../../../config/services/postgresql.yml
 
   tasks:
     - name: Wyswietl wiadomosc powitalna (Hello World)

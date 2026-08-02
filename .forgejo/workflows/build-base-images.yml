@@ -31,10 +31,10 @@ jobs:
           chmod 600 ~/.ssh/known_hosts
 
       - name: Packer Init
-        working-directory: 00_base_images
+        working-directory: infra/00_base_images
         run: packer init .
 
-      - name: Packer Build Rocky Base Iamge
-        working-directory: 00_base_images
+      - name: Packer Build Rocky Base Image
+        working-directory: infra/00_base_images
         run: packer build -var "distro=rocky" .
         
