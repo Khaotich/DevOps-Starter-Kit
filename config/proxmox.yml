@@ -1,0 +1,12 @@
+ip: "192.168.0.150"
+port: 8006
+user: "svc-infra"
+token_id: "packer"
+ssh_private_file_path: "~/.ssh/id_ed25519"
+
+node: "pve" 
+insecure_skip_tls_verify: true
+
+disks_directory: "/dev/zvol/rpool/data" 
+qcow2_directory: "/var/lib/vz/import"
+iso_directory: "/var/lib/vz/template/iso" 
