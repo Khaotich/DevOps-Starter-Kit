@@ -57,8 +57,7 @@ tasks:
     desc: "Bootstrap Configure"
     dir: '{{.BOOTSTRAP_DIR}}/configure'
     cmds:
-      - ansible-playbook -i inventory.yml postgresql-playbook.yml
-      - ansible-playbook -i inventory.yml forgejo-playbook.yml
+      - ansible-playbook main.yml
 
   bootstrap-destroy:
     desc: "Bootstrap Destroy"

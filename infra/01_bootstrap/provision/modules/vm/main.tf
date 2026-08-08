@@ -7,6 +7,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
   machine       = local.vm_config.machine
   scsi_hardware = local.vm_config.scsi_controller
+  boot_order = ["${local.vm_config.disk_type}0", "net0"]
   operating_system {
     type = local.vm_config.operating_system
   }
@@ -40,7 +41,16 @@ resource "proxmox_virtual_environment_vm" "vm" {
     datastore_id = local.vm_config.disk_storage_pool
     interface    = "${local.vm_config.disk_type}0"
     size         = local.vm_config.disk_size_gb
-    file_id = "local:import/${local.vm_config.qcow2_file}.qcow2"
+    file_id      = "local:import/${local.vm_config.qcow2_file}.qcow2"
+  }
+
+  dynamic "disk" {
+    for_each = try(local.vm_config.disks, [])
+    content {
+      datastore_id = local.vm_config.disk_storage_pool
+      interface    = "${local.vm_config.disk_type}${disk.key + 1}"
+      size         = disk.value.size_gb
+    }
   }
 
   network_device {
@@ -49,7 +59,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
   initialization {
     datastore_id = local.vm_config.disk_storage_pool
-    interface    = "${local.vm_config.disk_type}1"
+    interface    = "ide2"
     upgrade      = true
 
     user_account {
