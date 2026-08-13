@@ -7,5 +7,15 @@ cores: 2
 ram_memory: 2048
 disk_size_gb: 20
 
+disks:
+  - size_gb: 20
+
 ip: "10.0.0.5"
 user: "khaotic"
+
+
+# software configuration
+postgres_version: "18"
+postgres_db_port: 5432
+postgres_data_dir: "/var/lib/pgsql"
+postgres_admin_password: "SuperTajneHasloProdukcyjne_2026!"

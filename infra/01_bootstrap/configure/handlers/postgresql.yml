@@ -1,0 +1,9 @@
+- name: Restart PostgreSQL
+  ansible.builtin.systemd:
+    name: "postgresql-{{ postgres_version }}"
+    state: restarted
+
+- name: Reload PostgreSQL
+  ansible.builtin.systemd:
+    name: "postgresql-{{ postgres_version }}"
+    state: reloaded

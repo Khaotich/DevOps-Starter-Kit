@@ -55,7 +55,7 @@ python3
 %post --log=/root/ks-post.log
 
 echo "==> Configure sudo"
-echo "${user_name} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/${user_name}
+echo "${user_name} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${user_name}
 chmod 440 /etc/sudoers.d/${user_name}
 
 echo "==> SSH config for Packer"

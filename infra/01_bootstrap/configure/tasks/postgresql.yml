@@ -1,0 +1,165 @@
+- name: Install and enable the tuned service
+  ansible.builtin.dnf:
+    name: tuned
+    state: present
+
+- name: Ensure the tuned service is running
+  ansible.builtin.systemd:
+    name: tuned
+    state: started
+    enabled: true
+
+- name: Set the Tuned profile to throughput-performance
+  ansible.builtin.command:
+    cmd: tuned-adm profile throughput-performance
+  changed_when: false
+
+- name: Create Physical Volume and Volume Group for PostgreSQL
+  community.general.lvg:
+    vg: vg_postgres
+    pvs: /dev/sdb
+
+- name: Create Logical Volume with all available space
+  community.general.lvol:
+    vg: vg_postgres
+    lv: lv_data
+    size: 100%FREE
+
+- name: Create XFS filesystem on the LVM volume
+  community.general.filesystem:
+    fstype: xfs
+    dev: /dev/vg_postgres/lv_data
+
+- name: Mount the LVM volume at /var/lib/pgsql with noatime options
+  ansible.posix.mount:
+    path: "{{ postgres_data_dir }}"
+    src: /dev/vg_postgres/lv_data
+    fstype: xfs
+    opts: defaults,noatime,nodiratime,logbufs=8
+    state: mounted
+
+- name: Configure sysctl parameters for PostgreSQL
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_file: /etc/sysctl.d/99-postgresql.conf
+    state: present
+    reload: true
+  loop:
+    - name: vm.swappiness
+      value: "10"
+    - name: vm.overcommit_memory
+      value: "2"
+    - name: vm.overcommit_ratio
+      value: "80"
+    - name: net.core.somaxconn
+      value: "4096"
+    - name: net.ipv4.ip_local_port_range
+      value: 1024 65535
+
+- name: Disable Transparent Huge Pages (THP) in GRUB
+  ansible.builtin.command:
+    cmd: grubby --update-kernel=ALL --args="transparent_hugepage=never"
+  changed_when: false
+
+- name: Set resource limits for the postgres user
+  ansible.builtin.blockinfile:
+    path: /etc/security/limits.d/99-postgres.conf
+    create: true
+    mode: "0644"
+    block: |
+      postgres    soft    nofile    65536
+      postgres    hard    nofile    65536
+      postgres    soft    nproc     4096
+      postgres    hard    nproc     4096
+      postgres    soft    memlock   unlimited
+      postgres    hard    memlock   unlimited
+
+- name: Set the Tuned profile to throughput-performance
+  ansible.builtin.command:
+    cmd: tuned-adm profile throughput-performance
+  changed_when: false
+
+- name: Disable the default AppStream PostgreSQL module
+  ansible.builtin.dnf:
+    name: postgresql
+    state: absent
+
+- name: Install the RPM repository for PGDG 18
+  ansible.builtin.dnf:
+    name: https://download.postgresql.org/pub/repos/yum/reporpms/EL-10-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+    state: present
+    disable_gpg_check: true
+
+- name: Install the postgresql18-server and client packages
+  ansible.builtin.dnf:
+    name:
+      - postgresql18-server
+      - postgresql18
+      - python3-psycopg2
+    state: present
+
+- name: Set permissions for the PostgreSQL data directory
+  ansible.builtin.file:
+    path: "{{ postgres_data_dir }}"
+    owner: postgres
+    group: postgres
+    mode: "0700"
+    state: directory
+
+- name: Set SELinux context for the PostgreSQL directory
+  community.general.sefcontext:
+    target: "{{ postgres_data_dir }}(/.*)?"
+    setype: postgresql_db_t
+    state: present
+
+- name: Apply SELinux context to the file structure
+  ansible.builtin.command:
+    cmd: restorecon -R -v {{ postgres_data_dir }}
+  changed_when: false
+
+- name: Check if the PostgreSQL database has already been initialized
+  ansible.builtin.stat:
+    path: "{{ postgres_data_dir }}/18/data/PG_VERSION"
+  register: pgdata_status
+
+- name: Initialize the PostgreSQL 18 cluster
+  ansible.builtin.command:
+    cmd: /usr/pgsql-{{ postgres_version }}/bin/postgresql-{{ postgres_version }}-setup initdb
+  when: not pgdata_status.stat.exists
+
+- name: Enable and start the postgresql-18 service
+  ansible.builtin.systemd:
+    name: postgresql-{{ postgres_version }}
+    enabled: true
+    state: started
+
+- name: Set password for the postgres database user
+  community.postgresql.postgresql_user:
+    name: postgres
+    password: "{{ postgres_admin_password }}"
+    encrypted: true
+  become_user: postgres
+
+- name: Configuration of listen_addresses in postgresql.conf
+  ansible.builtin.lineinfile:
+    path: "{{ postgres_data_dir }}/{{ postgres_version }}/data/postgresql.conf"
+    regexp: ^#?listen_addresses\s*=.*
+    line: listen_addresses = '*'
+  notify: Restart PostgreSQL
+
+- name: Configuration of access rules for SCRAM-SHA-256 in pg_hba.conf
+  ansible.builtin.blockinfile:
+    path: "{{ postgres_data_dir }}/{{ postgres_version }}/data/pg_hba.conf"
+    block: |
+      host    all             all             192.168.0.0/{{ cidr }}              scram-sha-256
+      host    all             all             {{ network }}/{{ cidr }}            scram-sha-256
+  notify: Restart PostgreSQL
+
+- name: Allow traffic on the PostgreSQL port from any IP
+  ansible.posix.firewalld:
+    service: postgresql
+    permanent: true
+    state: enabled
+    immediate: true
+  become: true
