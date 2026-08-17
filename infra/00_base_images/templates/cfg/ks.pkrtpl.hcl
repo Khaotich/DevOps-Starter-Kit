@@ -7,15 +7,15 @@ eula --agreed
 # Locale
 lang en_US.UTF-8
 keyboard us
-timezone Europe/Warsaw --utc
+timezone ${vm_config.timezone} --utc
 
 # Network
 network --bootproto=dhcp --device=link --activate --hostname=packer-template
 
 # Auth
 rootpw --lock
-user --name=${user_name} --password=${user_password} --iscrypted --groups=wheel
-sshkey --username=${user_name} "${ssh_public_key} ${user_name}@lan"
+user --name=${vm_config.ssh_username} --password=${user_password} --iscrypted --groups=wheel
+sshkey --username=${vm_config.ssh_username} "${ssh_public_key} ${vm_config.ssh_username}@lan"
 
 # Security
 firewall --enable
@@ -55,8 +55,8 @@ python3
 %post --log=/root/ks-post.log
 
 echo "==> Configure sudo"
-echo "${user_name} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${user_name}
-chmod 440 /etc/sudoers.d/${user_name}
+echo "${vm_config.ssh_username} ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/${vm_config.ssh_username}
+chmod 440 /etc/sudoers.d/${vm_config.ssh_username}
 
 echo "==> SSH config for Packer"
 sed -i 's/^#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config

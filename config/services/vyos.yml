@@ -1,0 +1,21 @@
+hostname: "vyos"
+description: "VyOS router"
+id: 1000
+qcow2_file: "vyos-2026.08.13-base-stable"
+efi_disk_pre_enrolled_key: false
+
+cores: 2
+ram_memory: 1024
+disk_size_gb: 20
+network_bridges:
+  - bridge: "vmbr0"
+  - bridge: "vmbr1"
+
+ip: "192.168.0.20"
+gateway: "192.168.0.1"
+lan_ip: "10.0.0.1"
+dhcp_start: "10.0.0.10"
+dhcp_stop: "10.0.0.100"
+
+user: "vyos"
+ssh_username: "vyos"

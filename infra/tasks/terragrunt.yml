@@ -1,0 +1,64 @@
+version: '3'
+
+vars:
+  TERRAGRUNT_DIR: '01_bootstrap/provision'
+
+tasks:
+  init:
+    desc: "Terragrunt Init"
+    dir: '{{.TERRAGRUNT_DIR}}/vms'
+    cmds:
+      - terragrunt run --all --non-interactive -- init
+
+  validate-vyos:
+    desc: "Terragrunt Validate VyOS configuration"
+    dir: '{{.TERRAGRUNT_DIR}}/vms/vyos'
+    cmds:
+      - terragrunt run --non-interactive -- validate
+
+  validate-postgres:
+    desc: "Terragrunt Validate Postgres configuration"
+    dir: '{{.TERRAGRUNT_DIR}}/vms/postgresql'
+    cmds:
+      - terragrunt run --non-interactive -- validate
+
+  validate-forgejo:
+    desc: "Terragrunt Validate Forgejo configuration"
+    dir: '{{.TERRAGRUNT_DIR}}/vms/forgejo'
+    cmds:
+      - terragrunt run --non-interactive -- validate
+
+  apply-vyos:
+    desc: "Terragrunt Apply Vyos"
+    dir: '{{.TERRAGRUNT_DIR}}/vms/vyos'
+    cmds:
+      - terragrunt run --non-interactive -- apply -auto-approve
+
+  apply-postgres:
+    desc: "Terragrunt Apply Postgres"
+    dir: '{{.TERRAGRUNT_DIR}}/vms/postgresql'
+    cmds:
+      - terragrunt run --non-interactive -- apply -auto-approve
+
+  apply-forgejo:
+    desc: "Terragrunt Apply Forgejo"
+    dir: '{{.TERRAGRUNT_DIR}}/vms/forgejo'
+    cmds:
+      - terragrunt run --non-interactive -- apply -auto-approve
+
+  destroy:
+    desc: "Terragrunt Destroy"
+    dir: '{{.TERRAGRUNT_DIR}}'
+    cmds:
+      - terragrunt run --all --non-interactive -- destroy
+
+  all:
+    desc: "Run format, validation, apply and configure sequentially"
+    cmds:
+      - task: init
+      - task: validate-vyos
+      - task: validate-postgres
+      - task: validate-forgejo
+      - task: apply-vyos
+      - task: apply-postgres
+      - task: apply-forgejo

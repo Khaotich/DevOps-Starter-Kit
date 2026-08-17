@@ -1,0 +1,14 @@
+id: 9100
+name: "vyos-2026.08.13-base"
+template_name: "vyos-2026.08.13-base"
+template_description: "Vyos 2026.08.13 base image built by Packer"
+
+iso_file: "vyos-2026.08.13-rolling-generic-amd64"
+cfg_file: "vyos"
+boot_file: "vyos"
+provisioner_file: "vyos"
+ssh_username: "vyos"
+network_bridge: "vmbr0"
+
+ip: "192.168.0.20"
+gateway: "192.168.0.1"

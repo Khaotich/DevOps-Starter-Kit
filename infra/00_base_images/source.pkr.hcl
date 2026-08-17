@@ -16,7 +16,7 @@ source "proxmox-iso" "base-image" {
   qemu_agent = local.vm_config.qemu_agent
 
   additional_iso_files {
-      cd_content = {"/${local.vm_config.cfg_file}.cfg" = templatefile("${abspath(path.cwd)}/templates/${local.vm_config.cfg_file}.pkrtpl.hcl", { user_name = local.vm_config.ssh_username, user_password = var.vm_ssh_password_hash, ssh_public_key = var.vm_ssh_public_key })}
+      cd_content = {"/${local.vm_config.cfg_file}.cfg" = templatefile("${abspath(path.cwd)}/templates/cfg/${local.vm_config.cfg_file}.pkrtpl.hcl", { vm_config = local.vm_config, user_password = var.vm_ssh_password_hash, ssh_public_key = var.vm_ssh_public_key })}
       cd_label = local.vm_config.cd_label
       iso_storage_pool = local.vm_config.iso_storage_pool
       type = local.vm_config.disk_type
@@ -32,9 +32,8 @@ source "proxmox-iso" "base-image" {
 
   bios = local.vm_config.bios
   boot = local.vm_config.boot
-  boot_command = local.vm_config.boot_command
+  boot_command = compact(split("\n", replace(templatefile("${abspath(path.cwd)}/templates/boot_command/${local.vm_config.boot_file}.pkrtpl.hcl", { vm_config = local.vm_config, user_password = var.vm_ssh_password, ssh_public_key =split(" ", var.vm_ssh_public_key)[1] }), "\r", "")))
   boot_wait = local.vm_config.boot_wait
-  ballooning_minimum = local.vm_config.ballooning_minimum
 
   efi_config {
     efi_storage_pool = local.vm_config.disk_storage_pool
@@ -51,6 +50,7 @@ source "proxmox-iso" "base-image" {
   sockets = local.vm_config.sockets
   cores = local.vm_config.cores
   memory = local.vm_config.ram_memory
+  ballooning_minimum = local.vm_config.ram_memory
 
   disks {
     disk_size = local.vm_config.disk_size
