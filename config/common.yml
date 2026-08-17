@@ -21,7 +21,6 @@ cpu_type: "host"
 sockets: 1
 cores: 2
 ram_memory: 2048
-ballooning_minimum: 0
 machine: "q35"
 tpm_version: "v2.0"
 
@@ -38,6 +37,8 @@ efi_disk_type: "4m"
 efi_disk_pre_enrolled_key: true
 
 # --- Network Settings ---
+network_bridges:
+  - bridge: "vmbr1"
 network_bridge: "vmbr1"
 network_model: "virtio"
 network_firewall: false
@@ -45,6 +46,7 @@ network_firewall: false
 # --- Provisioning ---
 qemu_agent: true
 cloud_init: true
+provisioner_command: "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
 
 # --- SSH ---
 ssh_timeout: "30m"
@@ -60,4 +62,6 @@ gateway: "10.0.0.1"
 dns_servers:
   - "1.1.1.1"
   - "8.8.8.8"
+
 dns_domain: "local"
+timezone: "Europe/Warsaw"

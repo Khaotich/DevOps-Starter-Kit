@@ -4,9 +4,8 @@ id: 1001
 qcow2_file: "rocky-10.1-base-stable"
 
 cores: 2
-ram_memory: 2048
+ram_memory: 1024
 disk_size_gb: 20
-
 disks:
   - size_gb: 20
 

@@ -1,0 +1,13 @@
+- name: Install and configure VyOS
+  hosts: host
+  gather_facts: false
+  connection: ansible.netcommon.network_cli
+  vars:
+    ansible_network_os: vyos.vyos.vyos
+  vars_files:
+    - ../../../../config/common.yml
+    - ../../../../config/services/vyos.yml
+
+  tasks:
+    - name: Load VyOS tasks
+      ansible.builtin.import_tasks: ../tasks/vyos.yml

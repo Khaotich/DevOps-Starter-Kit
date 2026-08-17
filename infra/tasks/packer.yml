@@ -1,0 +1,44 @@
+version: '3'
+
+vars:
+  PACKER_DIR: '00_base_images'
+
+tasks:
+  init:
+    desc: "Packer Init"
+    dir: '{{.PACKER_DIR}}'
+    cmds:
+      - packer init .
+
+  validate-rocky:
+    desc: "Packer Validate Rocky configuration"
+    dir: '{{.PACKER_DIR}}'
+    cmds:
+      - packer validate -var "distro=rocky" .
+
+  validate-vyos:
+    desc: "Packer Validate VyOS configuration"
+    dir: '{{.PACKER_DIR}}'
+    cmds:
+      - packer validate -var "distro=vyos" .
+
+  build-rocky:
+    desc: "Packer Build Rocky image"
+    dir: '{{.PACKER_DIR}}'
+    cmds:
+      - packer build -var "distro=rocky" .
+
+  build-vyos:
+    desc: "Packer Build VyOS image"
+    dir: '{{.PACKER_DIR}}'
+    cmds:
+      - packer build -var "distro=vyos" .
+
+  all:
+    desc: "Run format, validation, and build sequentially"
+    cmds:
+      - task: init
+      - task: validate-rocky
+      - task: validate-vyos
+      - task: build-rocky
+      - task: build-vyos

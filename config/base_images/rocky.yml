@@ -1,18 +1,10 @@
-# --- Rocky Linux 10.1 Specific Overrides ---
 id: 9100
 name: "rocky-10.1-base"
 template_name: "rocky-10.1-base"
 template_description: "Rocky Linux 10.1 base image built by Packer"
 
-# OS & Boot Settings
 iso_file: "Rocky-10.1-x86_64-minimal"
 cfg_file: "ks"
-boot_command:
-  - "e"
-  - "<down><down><end><wait>"
-  - " inst.text inst.ks=hd:LABEL=cidata:/ks.cfg"
-  - "<enter><wait><leftCtrlOn>x<leftCtrlOff>"
-
-# Provisioning Settings
+boot_file: "rocky"
 provisioner_file: "rocky"
-provisioner_command: "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'"
+network_bridge: "vmbr0"

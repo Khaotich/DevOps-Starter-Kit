@@ -35,6 +35,7 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
   memory {
     dedicated = local.vm_config.ram_memory
+    floating  = local.vm_config.ram_memory
   }
 
   disk {
@@ -53,8 +54,11 @@ resource "proxmox_virtual_environment_vm" "vm" {
     }
   }
 
-  network_device {
-    bridge = local.vm_config.network_bridge
+  dynamic "network_device" {
+    for_each = try(local.vm_config.network_bridges, [])
+    content {
+      bridge = network_device.value.bridge
+    }
   }
 
   initialization {

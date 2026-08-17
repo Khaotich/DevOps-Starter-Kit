@@ -1,0 +1,66 @@
+- name: Configure basic system settings (Hostname, System DNS)
+  vyos.vyos.vyos_system:
+    host_name: '{{ hostname }}'
+    name_servers: '{{ dns_servers }}'
+    state: present
+
+- name: Configure network interfaces (WAN, LAN, Loopback)
+  vyos.vyos.vyos_interfaces:
+    config:
+      - name: eth0
+        description: WAN
+        enabled: true
+      - name: eth1
+        description: LAN
+        enabled: true
+      - name: lo
+        description: Loopback
+        enabled: true
+    state: merged
+
+- name: Configure IP addressing on interfaces
+  vyos.vyos.vyos_l3_interfaces:
+    config:
+      - name: eth0
+        ipv4:
+          - address: '{{ ip }}/{{ cidr }}'
+      - name: eth1
+        ipv4:
+          - address: '{{ lan_ip }}/{{ cidr }}'
+      - name: lo
+        ipv4:
+          - address: 127.0.0.1/8
+    state: merged
+
+- name: Configure default static route (Default Gateway)
+  vyos.vyos.vyos_static_routes:
+    config:
+      - address_families:
+          - afi: ipv4
+            routes:
+              - dest: 0.0.0.0/0
+                next_hops:
+                  - forward_router_address: "{{ gateway }}"
+    state: merged
+
+- name: Apply services, NAT, DHCP, and hardening configuration
+  vyos.vyos.vyos_config:
+    lines:
+      - set system time-zone '{{ timezone }}'
+      - set service ntp server 0.pool.ntp.org
+      - set service ntp server 1.pool.ntp.org
+      - set service lldp interface eth1
+      - set service dns forwarding cache-size '150'
+      - set service dns forwarding listen-address '{{ lan_ip }}'
+      - set service dns forwarding allow-from '{{ network }}/{{ cidr }}'
+      - set nat source rule 100 outbound-interface name 'eth0'
+      - set nat source rule 100 source address '{{ network }}/{{ cidr }}'
+      - set nat source rule 100 translation address masquerade
+      - set service dhcp-server shared-network-name LAN subnet '{{ network }}/{{ cidr }}' option default-router '{{ lan_ip }}'
+      - set service dhcp-server shared-network-name LAN subnet '{{ network }}/{{ cidr }}' option name-server '{{ lan_ip }}'
+      - set service dhcp-server shared-network-name LAN subnet '{{ network }}/{{ cidr }}' option domain-name 'local'
+      - set service dhcp-server shared-network-name LAN subnet '{{ network }}/{{ cidr }}' lease '86400'
+      - set service dhcp-server shared-network-name LAN subnet '{{ network }}/{{ cidr }}' range 0 start '{{ dhcp_start }}'
+      - set service dhcp-server shared-network-name LAN subnet '{{ network }}/{{ cidr }}' range 0 stop '{{ dhcp_stop }}'
+      - set service dhcp-server shared-network-name LAN subnet '{{ network }}/{{ cidr }}' subnet-id '1'
+    save: true
