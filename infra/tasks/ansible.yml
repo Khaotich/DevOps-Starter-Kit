@@ -1,7 +1,7 @@
 version: '3'
 
 vars:
-  ANSIBLE_DIR: '01_bootstrap/configure'
+  ANSIBLE_DIR: '02_configure'
 
 tasks:
   vyos:
@@ -16,7 +16,7 @@ tasks:
     cmds:
       - ansible-playbook playbooks/postgres.yml
 
-  all:
+  01-bootstrap:
     desc: "Run format, validation, apply and configure sequentially"
     cmds:
       - task: vyos

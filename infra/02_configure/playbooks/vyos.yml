@@ -5,8 +5,8 @@
   vars:
     ansible_network_os: vyos.vyos.vyos
   vars_files:
-    - ../../../../config/common.yml
-    - ../../../../config/services/vyos.yml
+    - ../../../config/common.yml
+    - ../../../config/services/vyos.yml
 
   tasks:
     - name: Load VyOS tasks

@@ -1,0 +1,7 @@
+bridges:
+  vmbr1:
+    comment: "Internal Network"
+    address: null
+    ports: [""]
+    autostart: true
+    vlan_aware: false

@@ -2,8 +2,8 @@
   hosts: host
   gather_facts: false
   vars_files:
-    - ../../../../config/common.yml
-    - ../../../../config/services/forgejo.yml
+    - ../../../config/common.yml
+    - ../../../config/services/forgejo.yml
 
   tasks:
     - name: Load Forgejo tasks

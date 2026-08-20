@@ -1,0 +1,14 @@
+iso_images:
+  rocky10_2:
+    url: "https://download.rockylinux.org/pub/rocky/10/isos/x86_64/Rocky-10.2-x86_64-minimal.iso"
+    file_name: "Rocky-10.2-x86_64-minimal.iso"
+    datastore: "local"
+    checksum: "aac6ac3ce781b91a91ce78463405f66c611a5dca4b3840c79e5e01d97302f6c8"
+    checksum_algorithm: "sha256"
+
+  vyos:
+    url: "https://community-downloads.vyos.dev/stream/2026.03/vyos-2026.03-generic-amd64.iso"
+    file_name: "vyos-2026.03-generic-amd64.iso"
+    datastore: "local"
+    checksum: "56151a536e4a70c1a3f9202d8e6e59e7dd308cc84e2c50b633884a1376a39010"          
+    checksum_algorithm: "sha256"

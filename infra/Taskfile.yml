@@ -6,12 +6,19 @@ includes:
   ansible: tasks/ansible.yml
 
 tasks:
-  bootstrap-all:
-    desc: "Bootstrap all the infrastructure (Packer -> Terragrunt -> Ansible)"
+  prebootstrap:
+    desc: "Pre-bootstrap the infrastructure"
+    cmds:
+      - task: terragrunt:validate-00-prebootstrap
+      - task: terragrunt:apply-00-prebootstrap
+
+  bootstrap:
+    desc: "Bootstrap the infrastructure (Packer -> Terragrunt -> Ansible)"
     cmds:
       - task: packer:all
-      - task: terragrunt:all
-      - task: ansible:all
+      - task: terragrunt:validate-01-bootstrap
+      - task: terragrunt:apply-01-bootstrap
+      - task: ansible:01-bootstrap
 
   bootstrap-destroy:
     desc: "Destroy all infrastructure and clean up state"
