@@ -34,6 +34,12 @@ tasks:
     cmds:
       - packer build -var "distro=vyos" .
 
+  clean:
+    desc: "Packer Clean"
+    dir: '{{.PACKER_DIR}}'
+    cmds:
+      - packer clean
+
   all:
     desc: "Run format, validation, and build sequentially"
     cmds:

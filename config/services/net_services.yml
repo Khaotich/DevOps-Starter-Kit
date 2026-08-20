@@ -1,0 +1,11 @@
+hostname: "net-services"
+description: "net-services"
+id: 1001
+qcow2_file: "rocky-10.1-base-stable"
+
+cores: 2
+ram_memory: 1024
+disk_size_gb: 20
+
+ip: "10.0.0.5"
+user: "khaotic"
