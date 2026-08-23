@@ -1,11 +1,13 @@
 locals {
   repo_root      = get_repo_root()
+  secrets_config = yamldecode(sops_decrypt_file("${get_repo_root()}/secrets/secrets.enc.yml"))
   proxmox_config = yamldecode(file("${local.repo_root}/config/proxmox.yml"))
   base_config    = yamldecode(file("${local.repo_root}/config/common.yml"))
 }
 
 inputs = {
   proxmox_config = local.proxmox_config
+  secrets_config = local.secrets_config
 }
 
 generate "versions" {
@@ -19,6 +21,10 @@ terraform {
       source  = "bpg/proxmox"
       version = "~> 0.111.0"
     }
+    sops = {
+      source  = "carlpett/sops"
+      version = "~> 1.4.1"
+    }
   }
 }
 EOF
@@ -30,13 +36,13 @@ generate "provider" {
   contents  = <<-EOF
 provider "proxmox" {
   endpoint  = "https://${local.proxmox_config.ip}:${local.proxmox_config.port}/"
-  api_token = "${local.proxmox_config.user}@pam!${local.proxmox_config.token_id}=${get_env("TF_VAR_proxmox_token_secret", "")}"
+  api_token = "${local.proxmox_config.user}@${local.proxmox_config.realm}!${local.proxmox_config.token_id}=${local.secrets_config.proxmox_token_secret}"
   insecure  = true
 
   ssh {
     agent    = true
     username = "${local.proxmox_config.user}"
-    password = "${get_env("TF_VAR_proxmox_password", "")}"
+    password = "${local.secrets_config.proxmox_password}"
   }
 }
 EOF

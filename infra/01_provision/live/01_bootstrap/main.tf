@@ -1,5 +1,5 @@
 variable "proxmox_config" { type = any }
-variable "secrets"        { type = any }
+variable "secrets_config" { type = any }
 
 variable "vyos_config"         { type = any }
 variable "net_services_config" { type = any }
@@ -11,8 +11,7 @@ module "vyos" {
 
   vm_config      = var.vyos_config
   proxmox_config = var.proxmox_config
-  vm_password    = var.secrets.vm_password
-  vm_keys        = var.secrets.vm_keys
+  secrets_config = var.secrets_config
 }
 
 module "net_services" {
@@ -20,8 +19,7 @@ module "net_services" {
 
   vm_config      = var.net_services_config
   proxmox_config = var.proxmox_config
-  vm_password    = var.secrets.vm_password
-  vm_keys        = var.secrets.vm_keys
+  secrets_config = var.secrets_config
 }
 
 module "forgejo" {
@@ -29,8 +27,7 @@ module "forgejo" {
 
   vm_config      = var.forgejo_config
   proxmox_config = var.proxmox_config
-  vm_password    = var.secrets.vm_password
-  vm_keys        = var.secrets.vm_keys
+  secrets_config = var.secrets_config
 }
 
 module "postgres" {
@@ -38,6 +35,5 @@ module "postgres" {
 
   vm_config      = var.postgres_config
   proxmox_config = var.proxmox_config
-  vm_password    = var.secrets.vm_password
-  vm_keys        = var.secrets.vm_keys
+  secrets_config = var.secrets_config
 }

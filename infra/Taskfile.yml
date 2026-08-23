@@ -6,6 +6,16 @@ includes:
   ansible: tasks/ansible.yml
 
 tasks:
+  decrypt-secrets:
+    desc: "Decrypt secrets file"
+    cmds:
+      - sops -d ../secrets/secrets.enc.yml > /dev/shm/secrets.yml
+
+  remove-secrets:
+    desc: "Remove decrypted secrets file"
+    cmds:
+      - rm -f /dev/shm/secrets.yml
+
   prebootstrap:
     desc: "Pre-bootstrap the infrastructure"
     cmds:
@@ -24,4 +34,3 @@ tasks:
     desc: "Destroy all infrastructure and clean up state"
     cmds:
       - task: terragrunt:destroy
-      - task: packer:clean

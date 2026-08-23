@@ -63,13 +63,13 @@ resource "proxmox_virtual_environment_vm" "vm" {
 
   initialization {
     datastore_id = var.vm_config.disk_storage_pool
-    interface    = "ide2"
-    upgrade      = true
+    interface    = "ide0"
+    upgrade      = false
 
     user_account {
       username = var.vm_config.user
-      password = var.vm_password
-      keys     = [for k in var.vm_keys : trimspace(k)]
+      password = var.secrets_config.vm_password
+      keys     = [trimspace(var.secrets_config.vm_keys)]
     }
     
     ip_config {

@@ -21,9 +21,4 @@ inputs = {
   net_services_config = merge(local.base_config, local.net_services)
   postgres_config     = merge(local.base_config, local.postgres)
   forgejo_config      = merge(local.base_config, local.forgejo)
-  
-  secrets = {
-    vm_password = get_env("TF_VAR_vm_password", "")
-    vm_keys     = [get_env("TF_VAR_vm_keys", "")]
-  }
 }
