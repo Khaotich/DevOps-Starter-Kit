@@ -6,6 +6,23 @@
     - ../../../config/services/forgejo.yml
 
   tasks:
+    - name: Wait for SSH port (22) to accept connections
+      ansible.builtin.wait_for:
+        host: "{{ ansible_host }}"
+        port: 22
+        state: started
+        delay: 20
+        timeout: 600    
+      delegate_to: localhost
+
+    - name: Wait for Cloud-Init to complete (if applicable)
+      ansible.builtin.command: cloud-init status --wait
+      register: cloud_init_status
+      changed_when: false
+      failed_when: 
+        - cloud_init_status.rc != 0
+        - "'status: done' not in cloud_init_status.stdout"
+
     - name: Load Forgejo tasks
       ansible.builtin.import_tasks: ../tasks/forgejo.yml
 

@@ -6,13 +6,6 @@ variable "proxmox_config" {
   type        = any
 }
 
-variable "vm_password" {
-  type      = string
-  default   = null
-  sensitive = true
-}
-
-variable "vm_keys" {
-  type    = list(string)
-  default = []
+variable "secrets_config" {
+  type        = any
 }
