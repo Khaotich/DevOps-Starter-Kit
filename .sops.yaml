@@ -1,3 +1,5 @@
 creation_rules:
-  - path_regex: secrets/.*\.yml$
+  - path_regex: secrets/secrets.enc.yml$
     age: age1tyalm7zw06m9rxg9a22gxe26k80kz0wtstqqkrjzjgf2vdsjhd0qcvafvu
+  - path_regex: secrets/services/postgres.enc.yml$
+    age: age1upjh9jmlekq30c22g9z9urfj6d29z42lwzu550chh42zvgfuu4lqp5f2a4
