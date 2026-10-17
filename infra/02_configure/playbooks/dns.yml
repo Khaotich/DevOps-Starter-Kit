@@ -1,0 +1,23 @@
+- name: Install and configure DNS
+  hosts: host
+  gather_facts: false
+  vars:
+    haproxy: "{{ lookup('ansible.builtin.file', '../../../config/services/haproxy.yml') | from_yaml }}"
+    postgres: "{{ lookup('ansible.builtin.file', '../../../config/services/postgresql.yml') | from_yaml }}"
+  vars_files:
+    - ../../../config/common.yml
+    - ../../../config/services/dns.yml
+
+  tasks:
+    - name: Wait for ssh to accept connections
+      import_tasks: ../tasks/common/wait_ssh.yml
+
+    - name: Wait for cloud-init to be fully ready
+      import_tasks: ../tasks/common/wait_cloud_init.yml
+
+    - name: Load DNS tasks
+      ansible.builtin.import_tasks: ../tasks/dns.yml
+
+  handlers:
+    - name: Load DNS handlers
+      ansible.builtin.import_tasks: ../handlers/dns.yml

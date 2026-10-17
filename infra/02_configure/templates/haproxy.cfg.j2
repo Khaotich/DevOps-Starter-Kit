@@ -1,0 +1,21 @@
+global
+    log /dev/log local0
+    maxconn 2000
+
+defaults
+    log global
+    mode tcp
+    option tcplog
+
+    timeout connect 5s
+    timeout client 8h
+    timeout server 8h
+
+frontend postgres_in
+    bind {{ ip }}:{{ postgres.postgres_db_port }}
+    default_backend postgres_db
+
+backend postgres_db
+    option tcp-check
+    default-server inter 5s fall 3 rise 2
+    server db1 {{ postgres.ip }}:{{ postgres.postgres_db_port }} check

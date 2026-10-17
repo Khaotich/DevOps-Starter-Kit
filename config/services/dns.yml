@@ -1,5 +1,5 @@
-hostname: "net-services"
-description: "net-services"
+hostname: "dns"
+description: "dns"
 id: 1001
 qcow2_file: "rocky-10.1-base-stable"
 

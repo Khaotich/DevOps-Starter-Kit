@@ -1,0 +1,19 @@
+$TTL 86400
+
+@ IN SOA dns.local. admin.local. (
+    2019061800 ;Serial
+    3600 ;Refresh
+    1800 ;Retry
+    604800 ;Expire
+    86400 ;Minimum TTL
+)
+
+;Name Server Information
+@ IN NS dns.local.
+
+;IP for Name Server
+dns IN A {{ ip }}
+
+;A Record for IP address to Hostname
+postgres   IN   A   {{ postgres.ip }}
+*          IN   A   {{ haproxy.ip }}
