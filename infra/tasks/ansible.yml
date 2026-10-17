@@ -9,6 +9,18 @@ tasks:
     dir: '{{.ANSIBLE_DIR}}'
     cmds:
       - ansible-playbook playbooks/vyos.yml
+
+  dns:
+    desc: "DNS Configure"
+    dir: '{{.ANSIBLE_DIR}}'
+    cmds:
+      - ansible-playbook playbooks/dns.yml
+
+  haproxy:
+    desc: "HAProxy Configure"
+    dir: '{{.ANSIBLE_DIR}}'
+    cmds:
+      - ansible-playbook playbooks/haproxy.yml
   
   postgres:
     desc: "Postgres Configure"
@@ -16,8 +28,14 @@ tasks:
     cmds:
       - ansible-playbook playbooks/postgres.yml
 
-  01-bootstrap:
+  01-network:
     desc: "Run format, validation, apply and configure sequentially"
     cmds:
       - task: vyos
+      - task: dns
+      - task: haproxy
+
+  02-core-services:
+    desc: "Run format, validation, apply and configure sequentially"
+    cmds:
       - task: postgres

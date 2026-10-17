@@ -19,16 +19,19 @@ tasks:
   prebootstrap:
     desc: "Pre-bootstrap the infrastructure"
     cmds:
-      - task: terragrunt:validate-00-prebootstrap
+      - task: terragrunt:validate-00-prerequisites
       - task: terragrunt:apply-00-prebootstrap
 
   bootstrap:
     desc: "Bootstrap the infrastructure (Packer -> Terragrunt -> Ansible)"
     cmds:
       - task: packer:all
-      - task: terragrunt:validate-01-bootstrap
-      - task: terragrunt:apply-01-bootstrap
-      - task: ansible:01-bootstrap
+      - task: terragrunt:validate-01-network
+      - task: terragrunt:apply-01-network
+      - task: ansible:01-network
+      - task: terragrunt:validate-02-core-services
+      - task: terragrunt:apply-02-core-services
+      - task: ansible:02-core-services
 
   bootstrap-destroy:
     desc: "Destroy all infrastructure and clean up state"

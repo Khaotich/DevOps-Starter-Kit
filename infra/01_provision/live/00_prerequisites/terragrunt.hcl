@@ -1,5 +1,5 @@
 terraform {
-  source = "${get_repo_root()}//infra/01_provision/live/00_prebootstrap"
+  source = "${get_repo_root()}//infra/01_provision/live/00_prerequisites"
 }
 
 include "root" {

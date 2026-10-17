@@ -1,6 +1,6 @@
 hostname: "postgresql"
 description: "postgresql"
-id: 1002
+id: 1003
 qcow2_file: "rocky-10.1-base-stable"
 
 cores: 2
@@ -9,7 +9,7 @@ disk_size_gb: 20
 disks:
   - size_gb: 20
 
-ip: "10.0.0.6"
+ip: "10.0.0.7"
 user: "khaotic"
 
 

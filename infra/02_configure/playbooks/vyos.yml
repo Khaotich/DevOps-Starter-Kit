@@ -9,14 +9,8 @@
     - ../../../config/services/vyos.yml
 
   tasks:
-    - name: Wait for SSH port (22) to accept connections
-      ansible.builtin.wait_for:
-        host: "{{ ansible_host }}"
-        port: 22
-        state: started
-        delay: 20
-        timeout: 600    
-      delegate_to: localhost
+    - name: Wait for ssh to accept connections
+      import_tasks: ../tasks/common/wait_ssh.yml
 
     - name: Load VyOS tasks
       ansible.builtin.import_tasks: ../tasks/vyos.yml

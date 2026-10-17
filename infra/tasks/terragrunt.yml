@@ -10,27 +10,39 @@ tasks:
     cmds:
       - terragrunt run --all --non-interactive -- init
 
-  validate-00-prebootstrap:
+  validate-00-prerequisites:
     desc: "Terragrunt Validate Pre-Bootstrap configuration"
-    dir: '{{.TERRAGRUNT_DIR}}/00_prebootstrap'
+    dir: '{{.TERRAGRUNT_DIR}}/00_prerequisites'
     cmds:
       - terragrunt run --non-interactive -- validate
 
-  validate-01-bootstrap:
-    desc: "Terragrunt Validate Bootstrap configuration"
-    dir: '{{.TERRAGRUNT_DIR}}/01_bootstrap'
+  validate-01-network:
+    desc: "Terragrunt Validate Network configuration"
+    dir: '{{.TERRAGRUNT_DIR}}/01_network'
     cmds:
       - terragrunt run --non-interactive -- validate
 
-  apply-00-prebootstrap:
+  validate-02-core-services:
+    desc: "Terragrunt Validate Core Services configuration"
+    dir: '{{.TERRAGRUNT_DIR}}/02_core_services'
+    cmds:
+      - terragrunt run --non-interactive -- validate
+
+  apply-00-prerequisites:
     desc: "Terragrunt Apply Pre-Bootstrap"
-    dir: '{{.TERRAGRUNT_DIR}}/00_prebootstrap'
+    dir: '{{.TERRAGRUNT_DIR}}/00_prerequisites'
     cmds:
       - terragrunt run --non-interactive -- apply -auto-approve
 
-  apply-01-bootstrap:
-    desc: "Terragrunt Apply Bootstrap"
-    dir: '{{.TERRAGRUNT_DIR}}/01_bootstrap'
+  apply-01-network:
+    desc: "Terragrunt Apply Network configuration"
+    dir: '{{.TERRAGRUNT_DIR}}/01_network'
+    cmds:
+      - terragrunt run --non-interactive -- apply -auto-approve
+
+  apply-02-core-services:
+    desc: "Terragrunt Apply Core Services configuration"
+    dir: '{{.TERRAGRUNT_DIR}}/02_core_services'
     cmds:
       - terragrunt run --non-interactive -- apply -auto-approve
 
@@ -44,7 +56,9 @@ tasks:
     desc: "Run format, validation, apply and configure sequentially"
     cmds:
       - task: init
-      - task: validate-00-prebootstrap
-      - task: validate-01-bootstrap
-      - task: apply-00-prebootstrap
-      - task: apply-01-bootstrap
+      - task: validate-00-prerequisites
+      - task: validate-01-network
+      - task: validate-02-core-services
+      - task: apply-00-prerequisites
+      - task: apply-01-network
+      - task: apply-02-core-services
