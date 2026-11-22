@@ -1,0 +1,70 @@
+- name: Install BIND and utilities
+  dnf:
+    name:
+      - bind
+      - bind-utils
+    state: present
+
+- name: Allow queries from any IP in named.conf
+  lineinfile:
+    path: /etc/named.conf
+    regexp: '^\s*allow-query'
+    line: '        allow-query { any; };'
+  notify: restart named
+
+- name: Configure BIND to listen on all interfaces
+  lineinfile:
+    path: /etc/named.conf
+    regexp: '^\s*listen-on\s+port\s+53'
+    line: '        listen-on port 53 { any; };'
+  notify: restart named
+
+- name: Add local zone definition to named.conf
+  blockinfile:
+    path: /etc/named.conf
+    marker: "// {mark} ANSIBLE MANAGED LOCAL ZONE"
+    block: |
+      zone "local" IN {
+          type master;
+          file "local.db";
+          allow-update { none; };
+          allow-query {any; };
+      };
+      zone "0.0.10.in-addr.arpa" IN {
+          type master;
+          file "local.rev";
+          allow-update { none; };
+          allow-query { any; };
+      };
+  notify: restart named
+
+- name: Deploy zone file from template with wildcard record
+  template:
+    src: ../templates/local.db.j2
+    dest: /var/named/local.db
+    owner: named
+    group: named
+    mode: '0640'
+  notify: restart named
+
+- name: Deploy reverse zone file from template
+  template:
+    src: ../templates/local.rev.j2
+    dest: /var/named/local.rev
+    owner: named
+    group: named
+    mode: '0640'
+  notify: restart named
+
+- name: Ensure named service is enabled and started
+  service:
+    name: named
+    state: started
+    enabled: yes
+
+- name: Allow DNS port 53 through firewalld
+  firewalld:
+    service: dns
+    permanent: yes
+    state: enabled
+    immediate: yes

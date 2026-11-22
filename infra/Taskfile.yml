@@ -20,6 +20,7 @@ tasks:
     desc: "Pre-bootstrap the infrastructure"
     cmds:
       - task: terragrunt:validate-00-prerequisites
+      - task: terragrunt:validate-00-prerequisites
       - task: terragrunt:apply-00-prebootstrap
 
   bootstrap:

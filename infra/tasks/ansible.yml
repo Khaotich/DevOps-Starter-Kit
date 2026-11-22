@@ -22,6 +22,19 @@ tasks:
     cmds:
       - ansible-playbook playbooks/haproxy.yml
   
+
+  dns:
+    desc: "DNS Configure"
+    dir: '{{.ANSIBLE_DIR}}'
+    cmds:
+      - ansible-playbook playbooks/dns.yml
+
+  haproxy:
+    desc: "HAProxy Configure"
+    dir: '{{.ANSIBLE_DIR}}'
+    cmds:
+      - ansible-playbook playbooks/haproxy.yml
+  
   postgres:
     desc: "Postgres Configure"
     dir: '{{.ANSIBLE_DIR}}'
