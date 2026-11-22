@@ -1,0 +1,120 @@
+- name: Install required packages (Java 21, CLI utilities)
+  ansible.builtin.dnf:
+    name:
+      - java-21-openjdk
+      - java-21-openjdk-devel
+      - tar
+      - gzip
+      - wget
+    state: present
+    update_cache: yes
+
+- name: Create system group for Keycloak
+  ansible.builtin.group:
+    name: "{{ sso.keycloak_group }}"
+    state: present
+    system: yes
+
+- name: Create system user for Keycloak
+  ansible.builtin.user:
+    name: "{{ sso.keycloak_user }}"
+    group: "{{ sso.keycloak_group }}"
+    home: "{{ sso.keycloak_install_dir }}"
+    shell: /sbin/nologin
+    system: yes
+    state: present
+
+- name: Download and unarchive Keycloak release
+  ansible.builtin.unarchive:
+    src: "https://github.com/keycloak/keycloak/releases/download/{{ sso.keycloak_version }}/keycloak-{{ sso.keycloak_version }}.tar.gz"
+    dest: "{{ sso.keycloak_install_dir }}"
+    remote_src: yes
+    extra_opts:
+      - --strip-components=1
+    creates: "{{ sso.keycloak_install_dir }}/bin/kc.sh"
+    owner: "{{ sso.keycloak_user }}"
+    group: "{{ sso.keycloak_group }}"
+
+
+- name: Set correct ownership for Keycloak installation directory
+  ansible.builtin.file:
+    path: "{{ sso.keycloak_install_dir }}"
+    owner: "{{ sso.keycloak_user }}"
+    group: "{{ sso.keycloak_group }}"
+    recurse: yes
+
+- name: Configure keycloak.conf for external PostgreSQL database
+  ansible.builtin.blockinfile:
+    path: "{{ sso.keycloak_install_dir }}/conf/keycloak.conf"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK #"
+    block: |
+      db=postgres
+      db-url=jdbc:postgresql://{{ postgres.hostname }}.{{ dns_domain }}:{{ postgres.postgres_db_port }}/{{ sso.keycloak_db_name }}
+      db-username={{ sso.keycloak_db_name }}
+      db-password={{ vault_secrets['keycloak']['db_password'] }}
+      http-enabled=true
+      http-port={{ sso.keycloak_port }}
+      https-port=8443
+      hostname-strict=false
+
+- name: Build optimized Keycloak distribution (kc.sh build)
+  ansible.builtin.command:
+    cmd: "{{ sso.keycloak_install_dir }}/bin/kc.sh build"
+  become_user: "{{ sso.keycloak_user }}"
+
+- name: Create Systemd service unit file for Keycloak
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/keycloak.service
+    content: |
+      [Unit]
+      Description=Keycloak Server
+      After=network.target
+
+      [Service]
+      Type=simple
+      User={{ sso.keycloak_user }}
+      Group={{ sso.keycloak_group }}
+      WorkingDirectory={{ sso.keycloak_install_dir }}
+      ExecStart={{ sso.keycloak_install_dir }}/bin/kc.sh start
+      Restart=on-failure
+      Environment="JAVA_OPTS=-Djava.util.logging.manager=org.jboss.logmanager.LogManager"
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+
+- name: Reload Systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Enable and start Keycloak service
+  ansible.builtin.systemd:
+    name: keycloak
+    state: started
+    enabled: yes
+
+- name: Configure SELinux context for Keycloak directory
+  ansible.builtin.file:
+    path: "{{ sso.keycloak_install_dir }}"
+    setype: usr_t
+    recurse: yes
+
+- name: Open port {{ sso.keycloak_port }} in Firewalld
+  ansible.posix.firewalld:
+    port: "{{ sso.keycloak_port }}/tcp"
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: Create initial administrator account (bootstrap-admin)
+  ansible.builtin.command:
+    cmd: "{{ sso.keycloak_install_dir }}/bin/kc.sh bootstrap-admin user --username {{ sso.keycloak_admin_user }} --password:env BOOTSTRAP_PASSWORD"
+  environment:
+    BOOTSTRAP_PASSWORD: "{{ vault_secrets['keycloak']['admin_password'] }}"
+  become_user: "{{ sso.keycloak_user }}"
+  register: kc_admin_result
+  failed_when: 
+    - kc_admin_result.rc != 0 
+    - "'already exists' not in kc_admin_result.stderr"
+  changed_when: kc_admin_result.rc == 0
+  

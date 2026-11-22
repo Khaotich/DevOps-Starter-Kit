@@ -1,0 +1,25 @@
+- name: Enable KV v2 secret engine at secret/ path
+  community.hashi_vault.vault_write:
+    url: "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}"
+    token: "{{ vault_root_token }}"
+    path: "sys/mounts/secret"
+    data:
+      type: "kv"
+      options:
+        version: "2"
+
+- name: Enable AppRole authentication method
+  community.hashi_vault.vault_write:
+    url: "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}"
+    token: "{{ vault_root_token }}"
+    path: "sys/auth/approle"
+    data:
+      type: "approle"
+
+- name: Enable OIDC authentication method in Vault
+  community.hashi_vault.vault_write:
+    url: "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}"
+    token: "{{ vault_root_token }}"
+    path: "sys/auth/oidc"
+    data:
+      type: "oidc"

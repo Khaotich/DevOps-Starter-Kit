@@ -1,0 +1,22 @@
+hostname: "keycloak"
+description: "keycloak"
+id: 1004
+qcow2_file: "rocky-10.1-base-stable"
+
+cores: 2
+ram_memory: 1024
+disk_size_gb: 20
+
+ip: "10.0.0.9"
+user: "khaotic"
+
+keycloak_version: "26.0.0"
+keycloak_install_dir: "/opt/keycloak"
+keycloak_user: "keycloak"
+keycloak_group: "keycloak"
+keycloak_admin_user: "admin"
+keycloak_db_name: "keycloak"
+keycloak_db_user: "keycloak"
+keycloak_service_name: "keycloak"
+keycloak_realm: "master"
+keycloak_port: 8080

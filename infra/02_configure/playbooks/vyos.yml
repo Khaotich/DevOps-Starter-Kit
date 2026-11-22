@@ -12,5 +12,5 @@
     - name: Wait for ssh to accept connections
       import_tasks: ../tasks/common/wait_ssh.yml
 
-    - name: Load VyOS tasks
-      ansible.builtin.import_tasks: ../tasks/vyos.yml
+    - name: Configure VyOS
+      ansible.builtin.import_tasks: ../tasks/vyos/configure_vyos.yml

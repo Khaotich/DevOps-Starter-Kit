@@ -1,0 +1,26 @@
+- name: Create ACL policy for Ansible
+  community.hashi_vault.vault_write:
+    url: "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}"
+    token: "{{ vault_root_token }}"
+    path: "sys/policies/acl/ansible-policy"
+    data:
+      policy: "{{ lookup('ansible.builtin.file', playbook_dir ~ '/../files/vault/ansible-policy.hcl') }}"
+
+- name: Configure AppRole role for Ansible
+  community.hashi_vault.vault_write:
+    url: "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}"
+    token: "{{ vault_root_token }}"
+    path: "auth/approle/role/ansible"
+    data:
+      token_policies: ["ansible-policy"]
+      token_ttl: "1h"
+      token_max_ttl: "4h"
+      secret_id_ttl: "0"
+      secret_id_num_uses: "0"
+
+- name: Retrieve Role ID for Ansible
+  community.hashi_vault.vault_read:
+    url: "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}"
+    token: "{{ vault_root_token }}"
+    path: "auth/approle/role/ansible/role-id"
+  register: approle_role_id

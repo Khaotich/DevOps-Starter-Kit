@@ -1,0 +1,39 @@
+- name: Get Keycloak administrator token
+  ansible.builtin.uri:
+    url: "http://{{ sso.keycloak_service_name }}.{{dns_prefix}}.{{ dns_domain }}/realms/master/protocol/openid-connect/token"
+    method: POST
+    body_format: form-urlencoded
+    body:
+      client_id: "admin-cli"
+      username: "{{ sso.keycloak_admin_user }}"
+      password: "{{ vault_secrets['keycloak']['admin_password'] }}"
+      grant_type: "password"
+    status_code: [200]
+  register: keycloak_token_response
+  until: keycloak_token_response.status == 200
+  retries: 10
+  delay: 10
+
+- name: Create or update OIDC client for Vault in Keycloak
+  community.general.keycloak_client:
+    auth_client_id: "admin-cli"
+    token: "{{ keycloak_token_response.json.access_token }}"
+    auth_keycloak_url: "http://{{ sso.keycloak_service_name }}.{{dns_prefix}}.{{ dns_domain }}"
+    auth_realm: "master"
+    realm: "{{ sso.keycloak_realm }}"
+    client_id: "{{ vault.vault_client_id }}"
+    name: "Vault UI & CLI"
+    description: "OIDC client for logging into HashiCorp Vault"
+    enabled: true
+    client_authenticator_type: "client-secret"
+    secret: "{{ vault_secrets['keycloak']['client_secret'] }}"
+    standard_flow_enabled: true
+    direct_access_grants_enabled: false
+    root_url: "http://{{ vault.vault_service_name }}.{{dns_prefix}}.{{ dns_domain }}"
+    base_url: "/ui/vault/auth/oidc/oidc/callback"
+    redirect_uris:
+      - "http://{{ vault.vault_service_name }}.{{dns_prefix}}.{{ dns_domain }}/ui/vault/auth/oidc/oidc/callback"
+      - "http://{{ vault.vault_service_name }}.{{dns_prefix}}.{{ dns_domain }}:8250/oidc/callback"
+    web_origins:
+      - "http://{{ vault.vault_service_name }}.{{dns_prefix}}.{{ dns_domain }}"
+    state: "present"

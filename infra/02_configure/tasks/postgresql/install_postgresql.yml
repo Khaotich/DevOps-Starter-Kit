@@ -138,7 +138,7 @@
 - name: Set password for the postgres database user
   community.postgresql.postgresql_user:
     name: postgres
-    password: "{{ secrets.postgres_admin_password }}"
+    password: "{{ vault_secrets['postgres']['admin_password'] }}"
     encrypted: true
   become_user: postgres
 

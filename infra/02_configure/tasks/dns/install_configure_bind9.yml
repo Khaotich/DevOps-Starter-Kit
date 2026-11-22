@@ -24,15 +24,15 @@
     path: /etc/named.conf
     marker: "// {mark} ANSIBLE MANAGED LOCAL ZONE"
     block: |
-      zone "local" IN {
+      zone "{{ dns_domain }}" IN {
           type master;
-          file "local.db";
+          file "{{ dns_domain }}.db";
           allow-update { none; };
           allow-query {any; };
       };
       zone "0.0.10.in-addr.arpa" IN {
           type master;
-          file "local.rev";
+          file "{{ dns_domain }}.rev";
           allow-update { none; };
           allow-query { any; };
       };
@@ -40,8 +40,8 @@
 
 - name: Deploy zone file from template with wildcard record
   template:
-    src: ../templates/local.db.j2
-    dest: /var/named/local.db
+    src: ../../templates/bind.db.j2
+    dest: "/var/named/{{ dns_domain }}.db"
     owner: named
     group: named
     mode: '0640'
@@ -49,8 +49,8 @@
 
 - name: Deploy reverse zone file from template
   template:
-    src: ../templates/local.rev.j2
-    dest: /var/named/local.rev
+    src: ../../templates/bind.rev.j2
+    dest: "/var/named/{{ dns_domain }}.rev"
     owner: named
     group: named
     mode: '0640'

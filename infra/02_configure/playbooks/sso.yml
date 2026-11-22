@@ -1,0 +1,31 @@
+- name: Install and configure sso
+  hosts: host
+  gather_facts: false
+  vars:
+    sso: "{{ lookup('ansible.builtin.file', '../../../config/services/sso.yml') | from_yaml }}"
+    postgres: "{{ lookup('ansible.builtin.file', '../../../config/services/postgresql.yml') | from_yaml }}"
+    vault: "{{ lookup('ansible.builtin.file', '../../../config/services/vault.yml') | from_yaml }}"
+    vault_secret_paths:
+      - "keycloak"
+  vars_files:
+    - ../../../config/common.yml
+    - ../../../config/services/sso.yml
+
+  tasks:
+    - name: Load Ansible Credentials
+      ansible.builtin.include_tasks: ../tasks/common/load_ansible_creds.yml
+
+    - name: Fetch required secrets from Vault
+      ansible.builtin.include_tasks: ../tasks/common/load_secrets_vault.yml
+
+    - name: Wait for ssh to accept connections
+      import_tasks: ../tasks/common/wait_ssh.yml
+
+    - name: Wait for cloud-init to be fully ready
+      import_tasks: ../tasks/common/wait_cloud_init.yml
+
+    - name: Install Keycloak
+      ansible.builtin.import_tasks: ../tasks/sso/install_keycloak.yml
+
+    - name: Configure Keycloak
+      ansible.builtin.import_tasks: ../tasks/sso/configure_keycloak.yml

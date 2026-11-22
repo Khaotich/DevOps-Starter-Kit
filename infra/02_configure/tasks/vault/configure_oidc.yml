@@ -1,0 +1,28 @@
+- name: Configure OIDC provider (Keycloak) in Vault
+  community.hashi_vault.vault_write:
+    url: "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}"
+    auth_method: approle
+    role_id: "{{ approle_creds.VAULT_ROLE_ID }}"
+    secret_id: "{{ approle_creds.VAULT_SECRET_ID }}"
+    path: "auth/oidc/config"
+    data:
+      oidc_discovery_url: "http://{{ sso.keycloak_service_name }}.{{ dns_prefix }}.{{ dns_domain }}/realms/{{ sso.keycloak_realm }}"
+      oidc_client_id: "{{ vault.vault_client_id }}"
+      oidc_client_secret: "{{ vault_secrets['keycloak']['client_secret'] }}"
+      default_role: "devops"
+
+- name: Create OIDC role in Vault
+  community.hashi_vault.vault_write:
+    url: "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}"
+    auth_method: approle
+    role_id: "{{ approle_creds.VAULT_ROLE_ID }}"
+    secret_id: "{{ approle_creds.VAULT_SECRET_ID }}"
+    path: "auth/oidc/role/devops"
+    data:
+      role_type: "oidc"
+      allowed_redirect_uris:
+        - "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}/ui/vault/auth/oidc/oidc/callback"
+        - "http://127.0.0.1:8250/oidc/callback"
+      user_claim: "sub"
+      policies: ["default", "devops-admin"]
+      oidc_scopes: ["openid"]

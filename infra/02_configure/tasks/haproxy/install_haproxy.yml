@@ -2,10 +2,11 @@
   ansible.builtin.dnf:
     name: haproxy
     state: present
+    disablerepo: "epel"
 
 - name: Deploy HAProxy configuration file
   ansible.builtin.template:
-    src: ../templates/haproxy.cfg.j2
+    src: ../../templates/haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
     owner: root
     group: root
@@ -30,3 +31,18 @@
     name: haproxy
     enabled: true
     state: started
+
+- name: Allow HTTP through firewalld
+  firewalld:
+    service: http
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: Allow HTTPS through firewalld
+  firewalld:
+    service: https
+    permanent: yes
+    state: enabled
+    immediate: yes
+    

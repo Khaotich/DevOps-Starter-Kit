@@ -1,0 +1,14 @@
+- name: Prepare Ansible locally
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    python_interpreter_path: "/usr/bin/python3"
+
+  tasks:
+    - name: Install Ansible collections
+      import_tasks: ../tasks/common/install_collections.yml
+
+    - name: Install Ansible libs
+      import_tasks: ../tasks/common/install_libs.yml

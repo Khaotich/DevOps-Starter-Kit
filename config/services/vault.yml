@@ -1,0 +1,23 @@
+hostname: "vault"
+description: "vault"
+id: 1003
+qcow2_file: "rocky-10.1-base-stable"
+
+cores: 2
+ram_memory: 1024
+disk_size_gb: 20
+
+ip: "10.0.0.7"
+user: "khaotic"
+
+vault_version: "2.2.2"
+vault_port: 8200
+vault_user: vault
+vault_group: vault
+vault_home_dir: /var/lib/vault
+vault_data_dir: /var/lib/vault/data
+vault_service_name: "vault"
+
+vault_client_id: "vault"
+vault_cluster_keys_file: "/root/vault_cluster_keys.json"
+vault_approle_ansible_creds_file: "~/.ansible/secrets/vault_approle_creds.yml"
