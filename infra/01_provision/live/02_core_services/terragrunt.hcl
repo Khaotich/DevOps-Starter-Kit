@@ -11,8 +11,12 @@ locals {
   base_config = yamldecode(file("${local.repo_root}/config/common.yml"))
 
   postgres = yamldecode(file("${local.repo_root}/config/services/postgresql.yml"))
+  vault = yamldecode(file("${local.repo_root}/config/services/vault.yml"))
+  sso = yamldecode(file("${local.repo_root}/config/services/sso.yml"))
 }
 
 inputs = {
   postgres_config  = merge(local.base_config, local.postgres)
+  vault_config     = merge(local.base_config, local.vault)
+  sso_config       = merge(local.base_config, local.sso)
 }

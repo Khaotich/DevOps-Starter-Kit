@@ -1,0 +1,34 @@
+- name: Save Vault initialization keys securely locally
+  ansible.builtin.copy:
+    content: "{{ vault_init.stdout }}"
+    dest: "{{ vault.vault_cluster_keys_file }}"
+    owner: root
+    group: root
+    mode: '0600'
+  when: vault_init.changed
+  no_log: true
+
+- name: Check if Vault cluster keys file exists
+  ansible.builtin.stat:
+    path: "{{ vault.vault_cluster_keys_file }}"
+  register: vault_keys_stat
+
+- name: Read existing cluster keys file for subsequent runs
+  ansible.builtin.slurp:
+    src: "{{ vault.vault_cluster_keys_file }}"
+  register: existing_vault_keys
+  when: vault_keys_stat.stat.exists and not vault_init.changed
+
+- name: Set root token as a dynamic variable
+  ansible.builtin.set_fact:
+    vault_root_token: "{{ (vault_init.stdout | from_json).root_token if (vault_init.stdout is defined and vault_init.stdout != '') else ((existing_vault_keys['content'] | b64decode | from_json).root_token) }}"
+  when: (vault_init.stdout is defined and vault_init.stdout != "") or vault_keys_stat.stat.exists
+
+- name: Read unseal keys from local file
+  ansible.builtin.slurp:
+    src: "{{ vault.vault_cluster_keys_file }}"
+  register: vault_keys_file
+
+- name: Prepare list of keys
+  ansible.builtin.set_fact:
+    vault_keys_list: "{{ (vault_keys_file['content'] | b64decode | from_json) | json_query('unseal_keys_b64') }}"

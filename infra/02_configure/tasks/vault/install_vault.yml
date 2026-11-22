@@ -1,0 +1,140 @@
+- name: Install required packages (unzip, wget, curl)
+  ansible.builtin.dnf:
+    name:
+      - unzip
+      - wget
+      - curl
+    state: present
+    update_cache: yes
+
+- name: Create system group for Vault
+  ansible.builtin.group:
+    name: "{{ vault.vault_group }}"
+    state: present
+    system: yes
+
+- name: Create system user for Vault
+  ansible.builtin.user:
+    name: "{{ vault.vault_user }}"
+    group: "{{ vault.vault_group }}"
+    home: "{{ vault.vault_home_dir }}"
+    shell: /sbin/nologin
+    system: yes
+    state: present
+
+- name: Create Vault configuration and data directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ vault.vault_user }}"
+    group: "{{ vault.vault_group }}"
+    mode: '0750'
+  loop:
+    - /etc/vault.d
+    - "{{ vault.vault_data_dir }}"
+
+- name: Download and unarchive Vault release
+  ansible.builtin.unarchive:
+    src: "https://releases.hashicorp.com/vault/{{ vault.vault_version }}/vault_{{ vault.vault_version }}_linux_amd64.zip"
+    dest: "/usr/local/bin"
+    remote_src: yes
+    owner: "{{ vault.vault_user }}"
+    group: "{{ vault.vault_group }}"
+    creates: "/usr/local/bin/vault"
+  retries: 5
+  delay: 10
+
+- name: Set correct permissions for Vault binary
+  ansible.builtin.file:
+    path: "/usr/local/bin/vault"
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Configure vault.hcl for Integrated Storage (Raft)
+  ansible.builtin.copy:
+    dest: /etc/vault.d/vault.hcl
+    owner: "{{ vault.vault_user }}"
+    group: "{{ vault.vault_group }}"
+    mode: '0640'
+    content: |
+      ui = true
+      disable_mlock = true
+
+      storage "raft" {
+        path    = "{{ vault.vault_data_dir }}"
+        node_id = "{{ inventory_hostname }}"
+      }
+
+      listener "tcp" {
+        address     = "0.0.0.0:{{ vault.vault_port }}"
+        tls_disable = 1
+      }
+
+      api_addr = "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}:{{ vault.vault_port }}"
+      cluster_addr = "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}:8201"
+
+- name: Create Systemd service unit file for Vault
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/vault.service
+    content: |
+      [Unit]
+      Description=Vault Secret Management Tool
+      Documentation=https://www.vaultproject.io/docs/
+      After=network.target
+
+      [Service]
+      Type=notify
+      User={{ vault.vault_user }}
+      Group={{ vault.vault_group }}
+      ExecStart=/usr/local/bin/vault server -config=/etc/vault.d/vault.hcl
+      ExecReload=/bin/kill --signal HUP $MAINPID
+      KillMode=process
+      KillSignal=SIGINT
+      Restart=on-failure
+      RestartSec=5
+      LimitNOFILE=65536
+      CapabilityBoundingSet=CAP_SYSLOG CAP_IPC_LOCK
+      AmbientCapabilities=CAP_IPC_LOCK
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+
+- name: Reload Systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Enable and start Vault service
+  ansible.builtin.systemd:
+    name: vault
+    state: started
+    enabled: yes
+
+- name: Open port {{ vault.vault_port }} in Firewalld
+  ansible.posix.firewalld:
+    port: "{{ vault.vault_port }}/tcp"
+    permanent: yes
+    state: enabled
+    immediate: yes
+
+- name: Check Vault initialization status
+  ansible.builtin.command: /usr/local/bin/vault status -format=json
+  environment:
+    VAULT_ADDR: "http://127.0.0.1:{{ vault.vault_port }}"
+  register: vault_status
+  failed_when: false
+  changed_when: false
+
+- name: Initialize Vault operator if not initialized
+  ansible.builtin.command: >
+    /usr/local/bin/vault operator init 
+    -key-shares=1 
+    -key-threshold=1 
+    -format=json
+  environment:
+    VAULT_ADDR: "http://127.0.0.1:{{ vault.vault_port }}"
+  register: vault_init
+  when: 
+    - vault_status.rc in [2, 3] or (vault_status.stdout | length > 0 and not (vault_status.stdout | from_json).initialized)
+  no_log: true

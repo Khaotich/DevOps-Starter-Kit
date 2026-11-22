@@ -1,0 +1,12 @@
+- name: Unseal Vault
+  community.hashi_vault.vault_write:
+    url: "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}"
+    token: "{{ vault_root_token }}"
+    path: "sys/unseal"
+    data:
+      key: "{{ item }}"
+  loop: "{{ vault_keys_list }}"
+  register: unseal_results
+  until: not unseal_results.failed
+  retries: 5
+  delay: 3

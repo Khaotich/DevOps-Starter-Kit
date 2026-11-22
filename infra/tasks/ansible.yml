@@ -22,11 +22,48 @@ tasks:
     cmds:
       - ansible-playbook playbooks/haproxy.yml
   
+
+  dns:
+    desc: "DNS Configure"
+    dir: '{{.ANSIBLE_DIR}}'
+    cmds:
+      - ansible-playbook playbooks/dns.yml
+
+  haproxy:
+    desc: "HAProxy Configure"
+    dir: '{{.ANSIBLE_DIR}}'
+    cmds:
+      - ansible-playbook playbooks/haproxy.yml
+  
   postgres:
     desc: "Postgres Configure"
     dir: '{{.ANSIBLE_DIR}}'
     cmds:
       - ansible-playbook playbooks/postgres.yml
+
+  vault:
+    desc: "Vault Configure"
+    dir: '{{.ANSIBLE_DIR}}'
+    cmds:
+      - ansible-playbook playbooks/vault.yml
+
+  vault-oidc:
+    desc: "Vault OIDC Configure"
+    dir: '{{.ANSIBLE_DIR}}'
+    cmds:
+      - ansible-playbook playbooks/vault_oidc.yml
+
+  sso:
+    desc: "SSO Configure"
+    dir: '{{.ANSIBLE_DIR}}'
+    cmds:
+      - ansible-playbook playbooks/sso.yml
+
+  00-ansible-prepare:
+    desc: "Install Ansible libs and required collections"
+    dir: '{{.ANSIBLE_DIR}}'
+    cmds:
+      - ansible-playbook playbooks/ansible_host.yml
 
   01-network:
     desc: "Run format, validation, apply and configure sequentially"
@@ -38,4 +75,7 @@ tasks:
   02-core-services:
     desc: "Run format, validation, apply and configure sequentially"
     cmds:
+      - task: vault
       - task: postgres
+      - task: sso
+      - task: vault-oidc

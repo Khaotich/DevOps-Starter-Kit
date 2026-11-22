@@ -1,5 +1,5 @@
 global
-    log /dev/log local0
+    log /dev/log {{ dns_domain }}0
     maxconn 2000
 
 defaults
@@ -11,11 +11,22 @@ defaults
     timeout client 8h
     timeout server 8h
 
-frontend postgres_in
-    bind {{ ip }}:{{ postgres.postgres_db_port }}
-    default_backend postgres_db
+frontend shared_http_in
+    mode http
+    bind {{ ip }}:80
 
-backend postgres_db
-    option tcp-check
-    default-server inter 5s fall 3 rise 2
-    server db1 {{ postgres.ip }}:{{ postgres.postgres_db_port }} check
+    use_backend sso_cluster if { hdr(host) -i {{ sso.hostname }}.{{ dns_prefix }}.{{ dns_domain }} }
+    use_backend vault_cluster if { hdr(host) -i {{ vault.hostname }}.{{ dns_prefix }}.{{ dns_domain }} }
+
+
+# --- Backend: Sso ---
+backend sso_cluster
+    mode http
+    balance roundrobin
+    server sso_node1 {{ sso.ip }}:{{ sso.keycloak_port }} check
+
+# --- Backend: Vault ---
+backend vault_cluster
+    mode http
+    balance roundrobin
+    server vault_node1 {{ vault.ip }}:{{ vault.vault_port }} check

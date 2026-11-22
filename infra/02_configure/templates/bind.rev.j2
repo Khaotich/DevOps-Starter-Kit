@@ -1,0 +1,21 @@
+$TTL 180
+
+@ IN SOA dns.{{ dns_domain }}. admin.{{ dns_domain }}. (
+    2026110301 ;Serial
+    3600 ;Refresh
+    1800 ;Retry
+    604800 ;Expire
+    180 ;Minimum TTL
+)
+
+;Name Server Information
+@ IN NS dns.{{ dns_domain }}.
+
+;Reverse lookup for Name Server
+{{ ip.split('.')[-1] }} IN PTR dns.{{ dns_domain }}.
+
+;PTR Record IP address to HostName
+{{ postgres.ip.split('.')[-1] }} IN PTR {{ postgres.hostname }}.{{ dns_domain }}.
+{{ vault.ip.split('.')[-1] }}    IN PTR {{ vault.hostname }}.{{ dns_domain }}.
+{{ sso.ip.split('.')[-1] }}      IN PTR {{ sso.hostname }}.{{ dns_domain }}.
+{{ haproxy.ip.split('.')[-1] }}  IN PTR {{ haproxy.hostname }}.{{ dns_domain }}.

@@ -4,6 +4,8 @@
   vars:
     haproxy: "{{ lookup('ansible.builtin.file', '../../../config/services/haproxy.yml') | from_yaml }}"
     postgres: "{{ lookup('ansible.builtin.file', '../../../config/services/postgresql.yml') | from_yaml }}"
+    vault: "{{ lookup('ansible.builtin.file', '../../../config/services/vault.yml') | from_yaml }}"
+    sso: "{{ lookup('ansible.builtin.file', '../../../config/services/sso.yml') | from_yaml }}"
   vars_files:
     - ../../../config/common.yml
     - ../../../config/services/dns.yml
@@ -15,8 +17,8 @@
     - name: Wait for cloud-init to be fully ready
       import_tasks: ../tasks/common/wait_cloud_init.yml
 
-    - name: Load DNS tasks
-      ansible.builtin.import_tasks: ../tasks/dns.yml
+    - name: Install and configure BIND9
+      ansible.builtin.import_tasks: ../tasks/dns/install_configure_bind9.yml
 
   handlers:
     - name: Load DNS handlers

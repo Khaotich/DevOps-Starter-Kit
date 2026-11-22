@@ -1,0 +1,43 @@
+- name: Install and configure Vault
+  hosts: host
+  gather_facts: false
+  vars:
+    vault: "{{ lookup('ansible.builtin.file', '../../../config/services/vault.yml') | from_yaml }}"
+    sso: "{{ lookup('ansible.builtin.file', '../../../config/services/sso.yml') | from_yaml }}"
+  vars_files:
+    - ../../../config/common.yml
+    - ../../../config/services/vault.yml
+
+  tasks:
+    - name: Wait for ssh to accept connections
+      import_tasks: ../tasks/common/wait_ssh.yml
+
+    - name: Wait for cloud-init to be fully ready
+      import_tasks: ../tasks/common/wait_cloud_init.yml
+
+    - name: Install Ansible libs
+      import_tasks: ../tasks/common/install_libs.yml
+
+    - name: Install Vault
+      ansible.builtin.import_tasks: ../tasks/vault/install_vault.yml
+
+    - name: Save tokens
+      ansible.builtin.import_tasks: ../tasks/vault/save_tokens.yml
+
+    - name: Unseal Vault
+      ansible.builtin.import_tasks: ../tasks/vault/unseal_vault.yml
+
+    - name: Enable Vault services
+      ansible.builtin.import_tasks: ../tasks/vault/enable_services.yml
+
+    - name: Configure AppRole for Ansible
+      ansible.builtin.import_tasks: ../tasks/vault/configure_approle.yml
+
+    - name: Save AppRole credentials for Ansible
+      ansible.builtin.import_tasks: ../tasks/vault/save_approle_creds.yml
+
+    - name: Load AppRole credentials
+      ansible.builtin.import_tasks: ../tasks/common/load_ansible_creds.yml
+
+    - name: Generate secrets
+      ansible.builtin.import_tasks: ../tasks/vault/generate_secrets.yml

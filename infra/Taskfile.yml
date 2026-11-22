@@ -20,12 +20,14 @@ tasks:
     desc: "Pre-bootstrap the infrastructure"
     cmds:
       - task: terragrunt:validate-00-prerequisites
+      - task: terragrunt:validate-00-prerequisites
       - task: terragrunt:apply-00-prebootstrap
 
   bootstrap:
     desc: "Bootstrap the infrastructure (Packer -> Terragrunt -> Ansible)"
     cmds:
-      - task: packer:all
+      # - task: packer:all
+      - task: ansible:00-ansible-prepare
       - task: terragrunt:validate-01-network
       - task: terragrunt:apply-01-network
       - task: ansible:01-network

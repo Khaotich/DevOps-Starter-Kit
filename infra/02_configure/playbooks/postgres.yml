@@ -2,20 +2,36 @@
   hosts: host
   gather_facts: false
   vars:
-    secrets: "{{ lookup('community.sops.sops', '../../../secrets/services/postgres.enc.yml') | from_yaml }}"
+    vault: "{{ lookup('ansible.builtin.file', '../../../config/services/vault.yml') | from_yaml }}"
+    sso: "{{ lookup('ansible.builtin.file', '../../../config/services/sso.yml') | from_yaml }}"
+    vault_secret_paths:
+      - "postgres"
+      - "keycloak"
   vars_files:
     - ../../../config/common.yml
     - ../../../config/services/postgresql.yml
 
   tasks:
+    - name: Load Ansible Credentials
+      ansible.builtin.include_tasks: ../tasks/common/load_ansible_creds.yml
+
+    - name: Fetch required secrets from Vault
+      ansible.builtin.include_tasks: ../tasks/common/load_secrets_vault.yml
+
     - name: Wait for ssh to accept connections
       import_tasks: ../tasks/common/wait_ssh.yml
 
     - name: Wait for cloud-init to be fully ready
       import_tasks: ../tasks/common/wait_cloud_init.yml
 
-    - name: Load PostgreSQL tasks
-      ansible.builtin.import_tasks: ../tasks/postgresql.yml
+    - name: Load Ansible credentials
+      ansible.builtin.import_tasks: ../tasks/common/load_ansible_creds.yml
+
+    - name: Install and configure PostgreSQL
+      ansible.builtin.import_tasks: ../tasks/postgresql/install_postgresql.yml
+
+    - name: Create PostgreSQL databases and users
+      ansible.builtin.import_tasks: ../tasks/postgresql/create_databases.yml
 
   handlers:
     - name: Load PostgreSQL handlers

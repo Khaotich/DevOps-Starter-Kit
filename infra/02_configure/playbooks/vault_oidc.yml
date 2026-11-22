@@ -1,0 +1,27 @@
+- name: Configure Vault OIDC
+  hosts: host
+  gather_facts: false
+  vars:
+    vault: "{{ lookup('ansible.builtin.file', '../../../config/services/vault.yml') | from_yaml }}"
+    sso: "{{ lookup('ansible.builtin.file', '../../../config/services/sso.yml') | from_yaml }}"
+    vault_secret_paths:
+      - "keycloak"
+  vars_files:
+    - ../../../config/common.yml
+    - ../../../config/services/vault.yml
+
+  tasks:
+    - name: Load Ansible Credentials
+      ansible.builtin.include_tasks: ../tasks/common/load_ansible_creds.yml
+
+    - name: Fetch required secrets from Vault
+      ansible.builtin.include_tasks: ../tasks/common/load_secrets_vault.yml
+
+    - name: Wait for ssh to accept connections
+      import_tasks: ../tasks/common/wait_ssh.yml
+
+    - name: Wait for cloud-init to be fully ready
+      import_tasks: ../tasks/common/wait_cloud_init.yml
+
+    - name: Configure Vault OIDC
+      ansible.builtin.import_tasks: ../tasks/vault/configure_oidc.yml

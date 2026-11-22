@@ -1,0 +1,16 @@
+- name: Create Keycloak application user
+  community.postgresql.postgresql_user:
+    name: "{{ sso.keycloak_db_user }}"
+    password: "{{ vault_secrets['keycloak']['db_password'] }}"
+    encrypted: true
+    state: present
+  become: true
+  become_user: postgres
+
+- name: Create Keycloak application database
+  community.postgresql.postgresql_db:
+    name: "{{ sso.keycloak_db_name }}"
+    owner: "{{ sso.keycloak_db_user }}"
+    state: present
+  become: true
+  become_user: postgres

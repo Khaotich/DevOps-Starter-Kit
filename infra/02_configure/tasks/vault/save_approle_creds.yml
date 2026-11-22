@@ -1,0 +1,25 @@
+- name: Generate Secret ID for Ansible
+  community.hashi_vault.vault_write:
+    url: "http://{{ vault.vault_service_name }}.{{ dns_prefix }}.{{ dns_domain }}"
+    token: "{{ vault_root_token }}"
+    path: "auth/approle/role/ansible/secret-id"
+  register: approle_secret_id
+
+- name: Save generated AppRole credentials to localhost
+  block:
+    - name: Ensure target directory exists on localhost
+      ansible.builtin.file:
+        path: "{{ (vault.vault_approle_ansible_creds_file | expanduser) | dirname }}"
+        state: directory
+        mode: "0700"
+
+    - name: Save credentials file
+      ansible.builtin.copy:
+        content: |
+          VAULT_ROLE_ID: "{{ approle_role_id.data.data.role_id }}"
+          VAULT_SECRET_ID: "{{ approle_secret_id.data.data.secret_id }}"
+        dest: "{{ vault.vault_approle_ansible_creds_file | expanduser }}"
+        mode: "0600"
+        force: true
+  delegate_to: localhost
+  run_once: true

@@ -1,0 +1,16 @@
+- name: Ensure python packaging and hvac libraries are installed
+  block:
+    - name: Install python3-packaging package
+      ansible.builtin.package:
+        name: python3-packaging
+        state: present
+        update_cache: false
+      become: true
+
+    - name: Ensure required python libraries are installed on target via pip
+      ansible.builtin.pip:
+        name:
+          - packaging
+          - hvac
+        executable: pip3
+        extra_args: "--break-system-packages"

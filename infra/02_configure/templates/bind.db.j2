@@ -1,0 +1,22 @@
+$TTL 180
+
+@ IN SOA dns.{{ dns_domain }}. admin.{{ dns_domain }}. (
+    2026110301 ;Serial
+    3600 ;Refresh
+    1800 ;Retry
+    604800 ;Expire
+    180 ;Minimum TTL
+)
+
+;Name Server Information
+@ IN NS dns.{{ dns_domain }}.
+
+;IP for Name Server
+dns IN A {{ ip }}
+
+;A Record for IP address to Hostname
+{{ postgres.hostname }} IN   A   {{ postgres.ip }}
+{{ vault.hostname }}    IN   A   {{ vault.ip }}
+{{ sso.hostname }}      IN   A   {{ sso.ip }}
+{{ haproxy.hostname }}  IN   A   {{ haproxy.ip }}
+*.{{ dns_prefix }}      IN   A   {{ haproxy.ip }}

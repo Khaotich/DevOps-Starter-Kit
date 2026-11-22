@@ -3,6 +3,8 @@
   gather_facts: false
   vars:
     postgres: "{{ lookup('ansible.builtin.file', '../../../config/services/postgresql.yml') | from_yaml }}"
+    vault: "{{ lookup('ansible.builtin.file', '../../../config/services/vault.yml') | from_yaml }}"
+    sso: "{{ lookup('ansible.builtin.file', '../../../config/services/sso.yml') | from_yaml }}"
   vars_files:
     - ../../../config/common.yml
     - ../../../config/services/haproxy.yml
@@ -14,9 +16,9 @@
     - name: Wait for cloud-init to be fully ready
       import_tasks: ../tasks/common/wait_cloud_init.yml
 
-    - name: Load HaProxy tasks
-      ansible.builtin.import_tasks: ../tasks/haproxy.yml
+    - name: Install and configure HAProxy
+      ansible.builtin.import_tasks: ../tasks/haproxy/install_haproxy.yml
 
   handlers:
-    - name: Load HaProxy handlers
+    - name: Load HAProxy handlers
       ansible.builtin.import_tasks: ../handlers/haproxy.yml

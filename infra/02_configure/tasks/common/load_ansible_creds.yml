@@ -1,0 +1,6 @@
+- name: Load AppRole credentials for ansible
+  include_vars:
+    file: "{{ vault.vault_approle_ansible_creds_file }}"
+    name: approle_creds
+  delegate_to: localhost
+  run_once: true

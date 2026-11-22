@@ -1,6 +1,6 @@
 hostname: "postgresql"
 description: "postgresql"
-id: 1003
+id: 1005
 qcow2_file: "rocky-10.1-base-stable"
 
 cores: 2
@@ -9,11 +9,9 @@ disk_size_gb: 20
 disks:
   - size_gb: 20
 
-ip: "10.0.0.7"
+ip: "10.0.0.8"
 user: "khaotic"
 
-
-# software configuration
 postgres_version: "18"
 postgres_db_port: 5432
 postgres_data_dir: "/var/lib/pgsql"
